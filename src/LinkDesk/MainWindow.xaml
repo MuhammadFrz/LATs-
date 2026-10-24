@@ -1,0 +1,67 @@
+<Window x:Class="LinkDesk.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="LinkDesk · Phone connection" Width="1080" Height="790" MinWidth="850" MinHeight="700" Background="#0B1120" FontFamily="Segoe UI" FontSize="14" WindowStartupLocation="CenterScreen">
+  <Grid Margin="30">
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <Grid Margin="0,0,0,25">
+      <StackPanel>
+        <TextBlock Text="◉  LinkDesk" FontSize="25" FontWeight="Bold"/>
+        <TextBlock Text="A clearer connection to your phone." Foreground="{StaticResource Muted}" Margin="0,7,0,0"/>
+      </StackPanel>
+      <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#1D2C42" CornerRadius="14" Padding="13,6"><TextBlock Text="WINDOWS PREVIEW" FontSize="11" Foreground="#8EDDE1" FontWeight="SemiBold"/></Border>
+    </Grid>
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="1.15*"/><ColumnDefinition Width="22"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+      <Border Background="#131D30" CornerRadius="16" Padding="22">
+        <Grid>
+          <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+          <StackPanel><TextBlock Text="01  /  FIND YOUR PHONE" Foreground="#73D9D4" FontSize="11" FontWeight="Bold"/><TextBlock Text="Nearby hotspots" FontSize="23" FontWeight="SemiBold" Margin="0,10,0,8"/>
+            <TextBlock Text="Turn on Wi-Fi Direct Hotspot in PdaNet on your phone, then scan." Foreground="{StaticResource Muted}"/>
+          </StackPanel>
+          <Grid Grid.Row="1" Margin="0,20,0,15">
+            <CheckBox x:Name="ShowAll" Content="Show other Wi-Fi networks" Checked="FilterChanged" Unchecked="FilterChanged" VerticalAlignment="Center"/>
+            <Button x:Name="ScanButton" Content="↻  Scan" HorizontalAlignment="Right" Click="ScanClicked"/>
+          </Grid>
+          <Grid Grid.Row="2">
+            <ListBox x:Name="Networks" Background="Transparent" BorderThickness="0" Foreground="White" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="NetworkSelected" AutomationProperties.Name="Available hotspots">
+              <ListBox.ItemContainerStyle><Style TargetType="ListBoxItem">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Padding" Value="14"/><Setter Property="Margin" Value="0,0,0,9"/><Setter Property="Background" Value="#1B2940"/><Setter Property="Foreground" Value="White"/>
+                <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem">
+                  <Border x:Name="Tile" Background="{TemplateBinding Background}" BorderBrush="#31445F" BorderThickness="1" CornerRadius="10" Padding="{TemplateBinding Padding}"><ContentPresenter/></Border>
+                  <ControlTemplate.Triggers><Trigger Property="IsSelected" Value="True"><Setter TargetName="Tile" Property="BorderBrush" Value="#73D9D4"/><Setter TargetName="Tile" Property="Background" Value="#173A46"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Tile" Property="BorderBrush" Value="#73D9D4"/></Trigger></ControlTemplate.Triggers>
+                </ControlTemplate></Setter.Value></Setter>
+              </Style></ListBox.ItemContainerStyle>
+              <ListBox.ItemTemplate><DataTemplate><StackPanel>
+                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="16"/>
+                <TextBlock Text="{Binding Detail}" Foreground="{StaticResource Muted}" FontSize="12" Margin="0,7,0,0"/>
+              </StackPanel></DataTemplate></ListBox.ItemTemplate>
+            </ListBox>
+            <TextBlock x:Name="EmptyHint" Text="Scan to discover nearby phones.&#10;&#10;Windows Location access is required for Wi-Fi discovery." Foreground="{StaticResource Muted}" VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center" Margin="20" IsHitTestVisible="False"/>
+          </Grid>
+          <Button Grid.Row="3" Content="Open Windows Location settings ↗" Click="LocationClicked" Margin="0,15,0,0"/>
+        </Grid>
+      </Border>
+      <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel>
+          <Border Background="#131D30" CornerRadius="16" Padding="22"><StackPanel>
+            <TextBlock Text="02  /  CONNECT" Foreground="#73D9D4" FontSize="11" FontWeight="Bold"/>
+            <TextBlock x:Name="SelectedName" Text="Choose your phone" FontSize="23" FontWeight="SemiBold" Margin="0,10,0,8"/>
+            <TextBlock Text="Enter the password shown on your phone. It stays in memory and is not saved by LinkDesk." Foreground="{StaticResource Muted}"/>
+            <TextBlock Text="Hotspot password" Margin="0,20,0,8"/>
+            <PasswordBox x:Name="Password" AutomationProperties.Name="Hotspot password"/>
+            <Button x:Name="ConnectButton" Content="Connect to phone  →" Click="ConnectClicked" IsEnabled="False" Background="#73D9D4" Foreground="#08282E" Margin="0,15,0,0"/>
+            <Button x:Name="CancelButton" Content="Cancel connection" Click="CancelClicked" Visibility="Collapsed" Margin="0,10,0,0"/>
+            <TextBlock Text="Connecting switches this adapter away from its current Wi-Fi network. Password pairing only; WPS is not implemented." Foreground="{StaticResource Muted}" FontSize="12" Margin="0,15,0,0"/>
+          </StackPanel></Border>
+          <Border Background="#131D30" CornerRadius="16" Padding="22" Margin="0,18,0,0"><StackPanel>
+            <TextBlock Text="CONNECTION STATUS" FontSize="11" Foreground="#73D9D4" FontWeight="Bold"/>
+            <TextBlock x:Name="StatusTitle" Text="Ready when you are" FontSize="19" FontWeight="SemiBold" Margin="0,12,0,8"/>
+            <TextBlock x:Name="StatusDetail" Text="Select a hotspot to get started." Foreground="{StaticResource Muted}"/>
+            <ProgressBar x:Name="Progress" Height="3" Margin="0,15,0,0" IsIndeterminate="True" Foreground="#73D9D4" Visibility="Collapsed"/>
+          </StackPanel></Border>
+          <Border Background="#202535" BorderBrush="#574F39" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,18,0,0"><TextBlock Foreground="#E3D3AB" FontSize="12" Text="Preview scope: real Windows Wi-Fi association. PdaNet's internet forwarding protocol is not implemented or verified. A Wi-Fi connection alone does not confirm internet access."/></Border>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+    <TextBlock Grid.Row="2" Text="LOCAL FIRST   /   No telemetry · No driver installation · No system proxy changes" Foreground="{StaticResource Muted}" FontSize="11" Margin="0,20,0,0"/>
+  </Grid>
+</Window>
