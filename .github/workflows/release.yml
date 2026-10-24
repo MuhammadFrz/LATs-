@@ -1,0 +1,53 @@
+name: Publish Windows preview
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Run profile and native ABI checks
+        shell: pwsh
+        run: |
+          dotnet run --project tests/LinkDesk.Checks/LinkDesk.Checks.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build standalone Windows application
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME.Substring(1)
+          dotnet publish src/LinkDesk/LinkDesk.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false "-p:Version=$version" -o artifacts/win-x64
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Package downloads
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force artifacts/release | Out-Null
+          Copy-Item README.md artifacts/win-x64/README.md
+          Compress-Archive -Path artifacts/win-x64/* -DestinationPath artifacts/release/LinkDesk-windows-x64.zip
+          git archive --format=zip --output=artifacts/release/LinkDesk-source.zip HEAD
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-ChildItem artifacts/release/*.zip | Sort-Object Name | ForEach-Object {
+            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $($_.Name)"
+          } | Set-Content artifacts/release/SHA256SUMS.txt -Encoding ascii
+      - name: Publish preview and attach downloads
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$env:GITHUB_REF_NAME" artifacts/release/LinkDesk-windows-x64.zip artifacts/release/LinkDesk-source.zip artifacts/release/SHA256SUMS.txt --repo "$env:GITHUB_REPOSITORY" --verify-tag --prerelease --title "LinkDesk $env:GITHUB_REF_NAME — Windows preview" --notes-file .github/release-notes.md
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
